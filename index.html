@@ -1,0 +1,493 @@
+<!DOCTYPE html> 
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<title>ACP Beneficios</title> 
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+	<link rel="stylesheet" href="beneficios.css" />
+	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+	<script type="text/javascript" src="http://maps.google.es/maps/api/js?sensor=false&language=es"></script>
+</head> 
+
+<body> 
+
+<div id="inicio" data-role="page" data-theme="b" data-content-theme="b">
+	<div data-role="header" data-theme="b" data-content-theme="b">
+	<fieldset class="ui-grid-a" style="min-width:2000px;">
+		<div class="ui-block-a"><img src="header1.png"></div>
+		<div class="ui-block-b"><img src="header2.png" style="position:absolute;right:0px;"></div>	   
+	</fieldset>	
+	</div><!-- /header -->
+
+	<div data-role="content" data-theme="b" data-content-theme="b">	
+			 <h6 style="text-align: justify;margin-top:0px;">La información contenida en este sitio es de propiedad de la ACP; 
+			 por lo tanto, se prohíbe su modificación o alteración, así como su copia, 
+			 distribución, transmisión, reproducción o publicación sin que medie una 
+			 autorización previa de RHCP. Además de lo anterior, esta información es el 
+			 resultado de conversaciones con distintos comercios los cuales solo han dado 
+			 autorización para que la misma sea divulgada en medios a los que solo tengan 
+			 acceso los trabajadores de la ACP. </h6>	
+		<div class="ui-bar-c ui-corner-all ui-shadow" style="padding:1em">
+                <div data-role="fieldcontain">
+                    <label  style="width:110px;" for="textip">Número de IP:</label>
+                    <input type="text" style="width:290px;"  id="textip" placeholder="su número de IP"
+                    data-mini="false" data-theme="b">			
+                </div>
+                <input type="checkbox" id="checkboxrecordarme" data-mini="true">
+                <label for="checkboxrecordarme">Recordarme?</label>
+                 							
+		</div>	
+		<input type="button" name="entrar" id="entrar" data-icon="forward" data-iconpos="right" data-theme="b" value="Entrar" />
+	<script>
+		$('#entrar').click(function(e) {
+			e.stopImmediatePropagation();
+			e.preventDefault();		
+
+			try
+			  {
+				if ($('#checkboxrecordarme')[0].checked){
+					localStorage.setItem('myIP', $('#textip')[0].value);
+				} else {localStorage.setItem('myIP', '');}
+			  }
+			catch(err)
+			  {
+			  //Handle errors
+			  }				
+
+			var checkIPUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/checkIP?IP=' + $('#textip').val();
+			//alert('Button entrar has been clicked valor de ip--' + $('#textip').val());
+			$.ajax(checkIPUrl,
+			{
+				beforeSend: function (xhr) {
+					// $.mobile.showPageLoadingMsg();
+				},
+
+				complete: function () {
+					// $.mobile.hidePageLoadingMsg();
+				},
+				contentType: 'application/json',
+				dataType: 'jsonp',
+				jsonp: 'callback',
+				type: 'GET',
+				error: function (xhr, ajaxOptions, thrownError) {
+					alert(xhr.status);
+					alert(xhr.responseText);
+					//alert(thrownError);
+				},
+				success: function (data) {
+					var result = data.revisaIPResult;
+					
+					if(result==='True'){
+					$.mobile.changePage( "listadoofertas.html", { transition: "slideup"} );
+					}else{alert('El número Ingresado no corresponde a un colaborador existente en la ACP!');}
+
+		         //end of success return call			
+				}
+			});			
+
+			
+		});	
+	</script>	
+	<script>
+		$( document ).bind( 'pagechange', function( event, data ){
+		
+			//*************remember me*********************		
+			if($.mobile.activePage.attr('id')==='inicio'){//Inicio
+				try
+				  {
+					$('#textip').val(localStorage.getItem('myIP'));
+				  }
+				catch(err)
+				  {
+				  //Handle errors
+				  }					
+			
+			} //end Inicio
+
+	
+			if($.mobile.activePage.attr('id')==='listadoofertas'){//Begin listado ofertas
+
+				var listadoOfertasUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/ListadoOfertas';
+					$.ajax(listadoOfertasUrl,
+					{
+						beforeSend: function (xhr) {
+							$.mobile.showPageLoadingMsg();
+						},
+
+						complete: function () {
+							$.mobile.hidePageLoadingMsg();
+						},
+						contentType: 'application/json',
+						dataType: 'jsonp',
+						jsonp: 'callback',
+						type: 'GET',
+						error: function (xhr, ajaxOptions, thrownError) {
+							alert(xhr.status);
+							alert(xhr.responseText);
+							//alert(thrownError);
+						},
+						success: function (data) {
+							var listadoofertasresult = data.GetListadoOfertasResult;
+							$('#beneficios').empty();
+							$.each(listadoofertasresult, function (index, listaofertas) {
+								$('#beneficios').append('<li><a href=detallecomercio.html?OfertaID=' + listaofertas.OfertaID + ' ><img src="http://acpbeneficios.azurewebsites.net/imagenes/'+ listaofertas.ComercioLogo +'" /><h3>'+ listaofertas.ComercioNombre +'</h3><p style="text-align: justify;margin-top:0px;">' + listaofertas.OfertaDescripcion + '</p><div style="margin-top:0px;float: left;width:50%;"><label style="padding-top:6px;text-align:left;font-size:11px;"><b>Válido hasta:</b> '+ listaofertas.OfertaHasta +'</label></div><div style="margin-top:0px;float: left;width:50%;text-align:right;"><label style="padding-top:6px;text-align:right;font-size:11px;"><b>Categoría:</b> '+ listaofertas.ComercioCategoria +'</label></div></a></li>');
+							});
+							$('#beneficios').listview('refresh');							
+
+						//end of success return call			
+						}
+					});		
+			
+				var listadoCategoriasUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/ListadoCategorias';
+					$.ajax(listadoCategoriasUrl,
+					{
+						beforeSend: function (xhr) {
+							$.mobile.showPageLoadingMsg();
+						},
+
+						complete: function () {
+							$.mobile.hidePageLoadingMsg();
+						},
+						contentType: 'application/json',
+						dataType: 'jsonp',
+						jsonp: 'callback',
+						type: 'GET',
+						error: function (xhr, ajaxOptions, thrownError) {
+							alert(xhr.status);
+							alert(xhr.responseText);
+							//alert(thrownError);
+						},
+						success: function (data) {
+							var listadocatresult = data.GetCategoriasResult;
+							$('#categorias').empty();
+							$('select#categorias').append('<option value="Todas">Todas</option>');
+							$.each(listadocatresult, function (index, listacat) {
+								$('select#categorias').append('<option value="' + listacat + '">' + listacat + '</option>');
+							});						
+
+						//end of success return call			
+						}
+					});		
+			
+					$('#categorias').live('change', function(e) {
+						e.stopImmediatePropagation();
+						e.preventDefault();		
+						var myseleccion = e.target.value;
+						if(myseleccion==='Todas'){
+							var listadoByCatUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/ListadoOfertas';
+						} else {
+							var listadoByCatUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/ListadoOfertasByCat?Cat='+ e.target.value;
+						}
+						$.ajax(listadoByCatUrl,
+						{
+							beforeSend: function (xhr) {
+								$.mobile.showPageLoadingMsg();
+							},
+
+							complete: function () {
+								$.mobile.hidePageLoadingMsg();
+							},
+							contentType: 'application/json',
+							dataType: 'jsonp',
+							jsonp: 'callback',
+							type: 'GET',
+							error: function (xhr, ajaxOptions, thrownError) {
+								alert(xhr.status);
+								alert(xhr.responseText);
+								//alert(thrownError);
+							},
+							success: function (data) {
+								if(myseleccion==='Todas'){
+									var listadobycatresult = data.GetListadoOfertasResult;
+								} else {
+									var listadobycatresult = data.GetListadoOfertasByCatResult;
+								}							
+								
+								$('#beneficios').empty();
+								$.each(listadobycatresult, function (index, listaofertasbycat) {
+									$('#beneficios').append('<li><a href=detallecomercio.html?OfertaID=' + listaofertasbycat.OfertaID + ' ><img src="http://acpbeneficios.azurewebsites.net/imagenes/'+ listaofertasbycat.ComercioLogo +'" /><h3>'+ listaofertasbycat.ComercioNombre +'</h3><p style="text-align: justify;margin-top:0px;">' + listaofertasbycat.OfertaDescripcion + '</p><div style="margin-top:0px;float: left;width:50%;"><label style="padding-top:6px;text-align:left;font-size:11px;"><b>Válido hasta:</b> '+ listaofertasbycat.OfertaHasta +'</label></div><div style="margin-top:0px;float: left;width:50%;text-align:right;"><label style="padding-top:6px;text-align:right;font-size:11px;"><b>Categoría:</b> '+ listaofertasbycat.ComercioCategoria +'</label></div></a></li>');
+								});
+								$('#beneficios').listview('refresh');						
+
+							//end of success return call			
+							}
+						});							
+						
+
+					 });				
+
+			} //end listado ofertas
+		
+			if($.mobile.activePage.attr('id')==='detallecomercio'){//Begin detallecomercio
+				//$.mobile.showPageLoadingMsg();
+				//get Geolocation
+				if(navigator.geolocation)
+				{
+				  navigator.geolocation.getCurrentPosition(onSuccess, onError,  { maximumAge: 3000, timeout: 5000, enableHighAccuracy: false });
+				 }
+			
+				// onSuccess Geolocation
+				function onSuccess(position) {
+				dibujamapa(position.coords.latitude,position.coords.longitude);
+				}
+
+				// onError Callback receives a PositionError object
+				//
+				function onError(error) {
+					alert('El dispositivo GPS ha excedido el tiempo permitido para responder!\n' +
+							'Las coordenadas del edificio de la administración del Canal seran utilizadas como su posición actual. \n');
+					//$.mobile.hidePageLoadingMsg();	
+				dibujamapa(8.959591, -79.554851);			
+				}					
+			
+				function dibujamapa(mylat,mylon) {					
+					var latlng = new google.maps.LatLng(mylat, mylon);
+					var myOptions = {
+					zoom: 12,
+					center: latlng,
+					mapTypeId: google.maps.MapTypeId.ROADMAP
+					   };
+					var map = new google.maps.Map(document.getElementById("detallecomercio_map_canvas"),myOptions);
+						
+					//***************position marker after map is drawn******************	
+
+					 var currentPositionMarker = new google.maps.Marker({
+						position: latlng,
+						map: map,
+						title: 'Usted está aquí'
+					});	
+					currentPositionMarker.setIcon('http://acpbeneficios.azurewebsites.net/imagenes/green-dot.png');
+					
+					var infowindow = new google.maps.InfoWindow();
+					google.maps.event.addListener(currentPositionMarker, 'click', function() {
+						infowindow.setContent('Su ubicación actual<br>Usted se encuentra aquí!');
+						infowindow.open(map, currentPositionMarker);
+					});					
+			
+					var results = new RegExp('[\\?&amp;]' + 'OfertaID' + '=([^&amp;#]*)').exec(window.location.href);
+					var myOfertaID= results[1] || 0;			
+					var detallecomercioUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/getOferta?OfertaID=' + myOfertaID;
+					$.ajax(detallecomercioUrl,
+					{
+						beforeSend: function (xhr) {
+							$.mobile.showPageLoadingMsg();
+						},
+
+						complete: function () {
+							$.mobile.hidePageLoadingMsg();
+						},
+						contentType: 'application/json',
+						dataType: 'jsonp',
+						jsonp: 'callback',
+						type: 'GET',
+						error: function (xhr, ajaxOptions, thrownError) {
+							alert(xhr.status);
+							alert(xhr.responseText);
+							//alert(thrownError);
+						},
+						success: function (data) {
+							var detallecomercioresult = data.dameOfertaResult;
+							$('#detallecomerciologo').attr('src', 'http://acpbeneficios.azurewebsites.net/imagenes/' + detallecomercioresult.ComercioLogo);
+							$('#detallecomercio_nombre').text(detallecomercioresult.ComercioNombre);	
+							$('#textooferta').text(detallecomercioresult.OfertaDescripcion);							
+							$('#etiquetacomercio').text('Ubicaciones de ' + detallecomercioresult.ComercioNombre);							
+							var comercioPuntosUrl = 'http://acpbeneficios.azurewebsites.net/OfertaServices.svc/ComercioPuntos?ComercioID=' + detallecomercioresult.ComercioID;						
+
+							
+						$.ajax(comercioPuntosUrl,
+						{
+							beforeSend: function (xhr) {
+								$.mobile.showPageLoadingMsg();
+							},
+
+							complete: function () {
+								$.mobile.hidePageLoadingMsg();
+							},
+							contentType: 'application/json',
+							dataType: 'jsonp',
+							jsonp: 'callback',
+							type: 'GET',
+							error: function (xhr, ajaxOptions, thrownError) {
+								alert(xhr.status);
+								alert(xhr.responseText);
+								//alert(thrownError);
+							},
+							success: function (data) {
+								var puntosresult = data.GetComercioPuntosResult;
+								var puntoscount = 0;
+								$.each(puntosresult, function (index, listapuntos) {
+								//adicionar puntos
+								var newlatlng = new google.maps.LatLng(listapuntos.Lat, listapuntos.Lon);
+								 var newPositionMarker = new google.maps.Marker({
+									position: newlatlng,
+									map: map,
+									title:  detallecomercioresult.ComercioNombre 
+								});	
+								newPositionMarker.setIcon('http://acpbeneficios.azurewebsites.net/imagenes/red-dot.png');
+								
+								var infowindow = new google.maps.InfoWindow();
+								google.maps.event.addListener(newPositionMarker, 'click', function() {
+								    var DescAddr=detallecomercioresult.ComercioNombre  + '<br>' + listapuntos.Direccion;
+									var myComercioID = detallecomercioresult.ComercioID;
+									var myPuntoID=listapuntos.UbicacionID;
+									infowindow.setContent(DescAddr + '<br><a href="comollegar.html?PuntoID=' + myPuntoID + '&ComercioID=' + myComercioID + '">Cómo llegar?</a>');
+									infowindow.open(map, newPositionMarker);
+								});		
+								
+								puntoscount=puntoscount +1;	
+								});
+                                if(puntoscount===0){$("#puntosresults").show();$("#puntosref").hide();} 
+								else {$("#puntosresults").hide();$("#puntosref").show();
+								$('#puntosdir').empty();
+								$.each(puntosresult, function (index, listapuntos) {
+									$('#puntosdir').append('<li><a href="comollegar.html?PuntoID=' + listapuntos.UbicacionID + '&ComercioID=' + detallecomercioresult.ComercioID + '">' + listapuntos.Direccion + '</a></li>');
+								});
+								$('#puntosdir').listview('refresh');}
+
+							//end of success return call			
+							}
+						});							
+
+						//end of success return call			
+						}
+					});		
+
+	
+				}					
+														
+					
+			
+			}//end detallecomercio
+		
+			if($.mobile.activePage.attr('id')==='comollegar'){//Begin comollegar
+					var resultsComercioID = new RegExp('[\\?&amp;]' + 'ComercioID' + '=([^&amp;#]*)').exec(window.location.href);
+					var myparamComercioID = resultsComercioID[1] || 0;	
+					var resultsPuntoID = new RegExp('[\\?&amp;]' + 'PuntoID' + '=([^&amp;#]*)').exec(window.location.href);	
+					var myparamPuntoID= resultsPuntoID[1] || 0;	
+					var PuntoUrl='http://acpbeneficios.azurewebsites.net/OfertaServices.svc/GetPunto?PuntoID=' + myparamPuntoID;
+				
+					$.ajax(PuntoUrl,
+					{
+						beforeSend: function (xhr) {
+							$.mobile.showPageLoadingMsg();
+						},
+
+						complete: function () {
+							$.mobile.hidePageLoadingMsg();
+						},
+						contentType: 'application/json',
+						dataType: 'jsonp',
+						jsonp: 'callback',
+						type: 'GET',
+						error: function (xhr, ajaxOptions, thrownError) {
+							alert(xhr.status);
+							alert(xhr.responseText);
+							//alert(thrownError);
+						},
+						success: function (data) {
+							var mypuntoresult = data.GetPuntoResult;
+							$('#comollegardescripcion').text('Ruta para llegar a ' + mypuntoresult.ComercioNombre + ' en ' + mypuntoresult.Direccion);
+
+							var map,
+								currentPosition,
+								directionsDisplay, 
+								directionsService,
+								destinationLatitude = mypuntoresult.Lat,
+								destinationLongitude = mypuntoresult.Lon;
+
+							//get Geolocation
+							if(navigator.geolocation)
+							{
+							  navigator.geolocation.getCurrentPosition(onSuccessGetPunto, onErrorGetPunto,  { maximumAge: 3000, timeout: 5000, enableHighAccuracy: false });
+							 } 
+			
+							// onSuccess Geolocation
+							function onSuccessGetPunto(position) {
+							initializeMapAndCalculateRoute(position.coords.latitude, position.coords.longitude);
+							}
+
+							// onError Callback receives a PositionError object
+							function onErrorGetPunto(error) {
+								alert('El dispositivo GPS ha excedido el tiempo permitido para responder!\n' +
+										'Las coordenadas del edificio de la administración del Canal seran utilizadas como su posición actual. \n');
+								//$.mobile.hidePageLoadingMsg();	
+							initializeMapAndCalculateRoute(8.959591, -79.554851);			
+							}					
+						
+							function initializeMapAndCalculateRoute(lat, lon)
+							{
+								directionsDisplay = new google.maps.DirectionsRenderer(); 
+								directionsService = new google.maps.DirectionsService();
+
+								currentPosition = new google.maps.LatLng(lat, lon);
+
+								map = new google.maps.Map(document.getElementById('comollegar_map_canvas'), {
+								   zoom: 15,
+								   center: currentPosition,
+								   mapTypeId: google.maps.MapTypeId.ROADMAP
+								 });
+
+								directionsDisplay.setMap(map);
+
+								// calculate Route
+								calculateRoute();
+							}
+
+							function calculateRoute() {
+								var targetDestination =  new google.maps.LatLng(destinationLatitude, destinationLongitude);
+								if (currentPosition != '' && targetDestination != '') {
+
+									var request = {
+										origin: currentPosition, 
+										destination: targetDestination,
+										travelMode: google.maps.DirectionsTravelMode["DRIVING"]
+									};
+
+									directionsService.route(request, function(response, status) {
+										if (status == google.maps.DirectionsStatus.OK) {
+
+											directionsDisplay.setPanel(document.getElementById("directions"));
+											directionsDisplay.setDirections(response); 
+
+											$("#results").show();
+										}
+										else {
+											$("#results").hide();
+										}
+									});
+								}
+								else {
+									$("#results").hide();
+								}
+							}
+						
+		
+
+						//end of success return call			
+						}
+					});					
+									
+
+			} //end comollegar		
+		
+		
+		
+		});
+	
+	
+	
+	</script>	
+
+	</div><!-- /content -->
+	
+	<div data-role="footer" data-theme="b" data-content-theme="b">
+		<div><h6 style="text-align: center;">Autoridad del Canal de Panamá - Todos los Derechos Reservados 2013 ©<br/><a href="terminos.html">Términos de uso.</a></h6></div>
+	</div><!-- /footer -->
+	
+</div><!-- /page -->
+
+</body>
+</html>
