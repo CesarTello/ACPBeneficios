@@ -6,7 +6,7 @@
         id = "com.ctmconcepts.beneficios.acp"
         version = "1.0.0">
 
-    <name>Beneficios ACP</name>
+    <name>Beneficios ACP (Windows Azure)</name>
 
     <description>
         Sistema de beneficios de la Autoridad del Canal de Panamá
