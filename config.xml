@@ -3,10 +3,10 @@
 <!-- config.xml reference: https://build.phonegap.com/docs/config-xml -->
 <widget xmlns = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
-        id = "com.ctmconcepts.beneficios.acp"
+        id = "net.azurewebsites.acpbeneficios"
         version = "1.0.0">
 
-    <name>Beneficios ACP (Windows Azure)</name>
+    <name>Beneficios ACP</name>
 
     <description>
         Sistema de beneficios de la Autoridad del Canal de Panamá
