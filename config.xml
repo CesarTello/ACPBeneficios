@@ -6,14 +6,14 @@
         id = "net.azurewebsites.acpbeneficios"
         version = "1.0.0">
 
-    <name>Beneficios ACP</name>
+    <name>Beneficios ACP (Windows Azure)</name>
 
     <description>
         Sistema de beneficios de la Autoridad del Canal de Panamá
     </description>
 
     <author href="http://ctmconcepts.com" email="cesartello@cableonda.net">
-        Cesar Tello
+        Cesar Tello Meryk
     </author>
 
     <!--
